@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Chat</title>
+    </head>
+    <body>
+		<form id="enter_room">
+			New room/Enter existing room: <input type="text" name = "room">
+		</form>
+		<button onclick="room_change()">Go to Room</button><br><br>
+        <form id="frm1">
+            Username: <input type="text" name="name" id = "input1">
+            Chat: <input type="text" name="comment" id = "input2">
+        </form>
+		<button onclick="turntoDatabase();">SUBMIT</button>
+        <p id = "comments"></p>
+		<p>w</p>
+        <script src="https://www.gstatic.com/firebasejs/5.7.2/firebase.js"></script>
+        <script>
+            // Initialize Firebase
+            var config = {
+                apiKey: "AIzaSyBJoXkxTT-xu2kwxUP0myX4SsDC5y5BuyU",
+                authDomain: "chat-1f744.firebaseapp.com",
+                databaseURL: "https://chat-1f744.firebaseio.com",
+                projectId: "chat-1f744",
+                storageBucket: "chat-1f744.appspot.com",
+                messagingSenderId: "684725301459"
+            };
+            firebase.initializeApp(config);
+        </script>
+        <script>
+			var room = "Public";
+			function saveToFirebase(name, contents) {
+				var today = new Date();
+				var dd = today.getDate();
+				var mm = today.getMonth()+1; //January is 0!
+				var yyyy = today.getFullYear();
+				var hr = today.getHours();
+				var min = today.getMinutes();
+
+				if(dd<10) {
+					dd = '0'+dd
+				} 
+
+				if(mm<10) {
+					mm = '0'+mm
+				}
+				
+				if(hr<10) {
+					hr = '0'+hr
+				}
+				
+				if(min<10) {
+					min = '0'+min
+				}
+
+				today = mm + '/' + dd + '/' + yyyy + " " + hr + ":" + min;
+				
+				var itthedoggoyes = {
+					datee: today,
+					namee: name,
+					contentss: contents,
+				};
+				firebase.database().ref(room).push().set(itthedoggoyes)
+					.then(function(snapshot) {
+						console.log("SUCCESS YAY"); // some success method
+					}, function(error) {
+						console.log('aw man not an error! ' + error);
+					});
+			}
+			function turntoDatabase(){
+				var x = document.getElementById("frm1");
+				saveToFirebase(x.elements[0].value, x.elements[1].value);
+				x.elements[0].value = "";
+				x.elements[1].value = "";
+			}
+			function encode(r){
+				return r.replace(/[\x26\x0A\<>'"]/g,function(r){return"&#"+r.charCodeAt(0)+";"})
+			}
+			function room_change(){
+				room=document.getElementById("enter_room")[0].value;
+				console.log(document.getElementById("enter_room")[0].value);
+				update();
+			}
+			var leadsRef = firebase.database().ref(room);
+			if (document.getElementById("comments").innerHTML.length !== 0){
+				document.getElementById("comments").innerHTML = "";
+			}
+			function update(){
+				firebase.database().ref(room).on('value', function (snapshot) {
+					var comments = "";
+					snapshot.forEach(function (childSnapshot) {
+						var childData = childSnapshot.val();
+						var commentElm = document.createElement("div");
+						commentElm = encode(childData.datee) + "      " + encode(childData.namee) + ": " + encode(childData.contentss) + '<br>';
+						comments = commentElm + comments;
+					});
+					document.getElementById("comments").innerHTML = comments;
+				});
+			}
+			update();
+			var input1 = document.getElementById("input1");
+			var input2 = document.getElementById("input2");
+			var input3 = document.getElementById("enter_room");
+			// Execute a function when the user releases a key on the keyboard
+			input1.addEventListener("keyup", function(event) {
+				// Cancel the default action, if needed
+				event.preventDefault();
+				// Number 13 is the "Enter" key on the keyboard
+				if (event.keyCode === 13) {
+					turntoDatabase();
+				}
+			});
+			input2.addEventListener("keyup", function(event) {
+				// Cancel the default action, if needed
+				event.preventDefault();
+				// Number 13 is the "Enter" key on the keyboard
+				if (event.keyCode === 13) {
+					turntoDatabase();
+				}
+			});
+			input3.addEventListener("keyup", function(event) {
+				// Cancel the default action, if needed
+				event.preventDefault();
+				// Number 13 is the "Enter" key on the keyboard
+				if (event.keyCode === 13) {
+					room_change();
+				}
+			});
+        </script>
+    </body>
+</html>
